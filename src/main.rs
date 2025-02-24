@@ -4,34 +4,41 @@ mod inout;
 
 use std::io::{self, Write};
 use users::get_current_username;
+use colored::*;
 
 fn main() {
     loop {
-        print!("[{:?}] ~> ", get_current_username().unwrap());
+        let username = get_current_username().unwrap();
+        print!("[{}] {}> ", username.to_string_lossy().bright_green(), "~".bright_blue());
         io::stdout().flush().unwrap();
 
         let mut input = String::new();
-        io::stdin().read_line(&mut input).unwrap();
+        match io::stdin().read_line(&mut input) {
+            Ok(_) => {
+                let input = input.trim();
 
-        let input = input.trim();
+                if input.contains(">") || input.contains("<") {
+                    handle_redirection(input);
+                } else if input.contains("|") {
+                    handle_pipe(input);
+                } else {
+                    let tokens: Vec<&str> = input.trim().split_whitespace().collect();
+                    if tokens.is_empty() {
+                        continue;
+                    }
 
-        if input.contains(">") || input.contains("<") {
-            handle_redirection(input);
-        } else if input.contains("|") {
-            handle_pipe(input);
-        } else {
-            let tokens: Vec<&str> = input.trim().split_whitespace().collect();
-            if tokens.is_empty() {
-                continue;
+                    let command = tokens[0];
+                    let args = &tokens[1..];
+
+                    if builtins::is_builtin(command) {
+                        builtins::execute_builtin(command, args);
+                    } else {
+                        command::execute_command(command, args);
+                    }
+                }
             }
-
-            let command = tokens[0];
-            let args = &tokens[1..];
-
-            if builtins::is_builtin(command) {
-                builtins::execute_builtin(command, args);
-            } else {
-                command::execute_command(command, args);
+            Err(error) => {
+                eprintln!("{}", format!("Error reading input: {}", error).red());
             }
         }
     }

@@ -1,25 +1,38 @@
 use std::env;
-use std::process::exit;
+use std::process;
+use colored::*;
 
 pub fn is_builtin(command: &str) -> bool {
-    match command {
-        "cd" | "exit" => true,
-        _ => false,
-    }
+    matches!(command, "cd" | "exit" | "help")
 }
 
 pub fn execute_builtin(command: &str, args: &[&str]) {
     match command {
         "cd" => {
-            if args.len() == 1 {
+            if args.is_empty() {
+                if let Some(home) = env::var_os("HOME") {
+                    if let Err(e) = env::set_current_dir(&home) {
+                        eprintln!("{}", format!("Failed to change directory: {}", e).red());
+                    }
+                }
+            } else {
                 if let Err(e) = env::set_current_dir(args[0]) {
-                    println!("cd: {}: {}", args[0], e);
+                    eprintln!("{}", format!("Failed to change directory: {}", e).red());
                 }
             }
         }
         "exit" => {
-            exit(0);
+            println!("{}", "Goodbye!".bright_yellow());
+            process::exit(0);
         }
-        _ => println!("Unknown command"),
+        "help" => {
+            println!("{}", "Available built-in commands:".bright_cyan());
+            println!("  {} - Change directory", "cd".green());
+            println!("  {} - Exit the shell", "exit".green());
+            println!("  {} - Show this help message", "help".green());
+        }
+        _ => {
+            eprintln!("{}", format!("Unknown built-in command: {}", command).red());
+        }
     }
 }
