@@ -25,6 +25,7 @@ name = "claw"
 version = "0.1.0"
 dependencies = [
  "colored",
+ "lazy_static",
  "rustyline",
  "users",
 ]
