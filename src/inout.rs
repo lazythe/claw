@@ -46,7 +46,6 @@ pub fn handle_input_redirection(command: &str, args: &[&str], input_file: Option
         println!("Command output: {}", output_str);
     }
 
-    // Handle error output if any
     if !output.stderr.is_empty() {
         let error_str = String::from_utf8_lossy(&output.stderr);
         eprintln!("Error output: {}", error_str);

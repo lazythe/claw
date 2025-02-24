@@ -6,24 +6,21 @@ use users::get_current_username;
 use colored::*;
 use rustyline::error::ReadlineError;
 use rustyline::{Editor, DefaultEditor};
+use std::env;
 
 fn main() {
-    // Create a new rustyline editor with default configuration
     let mut rl = DefaultEditor::new().unwrap();
     
-    // Load history from previous sessions if it exists
     if rl.load_history("history.txt").is_err() {
         println!("{}", "No previous history.".yellow());
     }
 
     loop {
         let username = get_current_username().unwrap();
-        let prompt = format!("[{}] {}> ", username.to_string_lossy().bright_green(), "~".bright_blue());
+        let prompt = format!("[{}] {} {}> ", username.to_string_lossy().bright_green(), env::current_dir().unwrap().display().to_string().bright_blue(), "~".bright_blue());
         
-        // Get input with line editing
         match rl.readline(&prompt) {
             Ok(line) => {
-                // Add valid lines to history
                 rl.add_history_entry(line.as_str());
                 
                 let input = line.trim();
@@ -66,7 +63,6 @@ fn main() {
         }
     }
 
-    // Save history on exit
     if let Err(err) = rl.save_history("history.txt") {
         eprintln!("{}", format!("Error saving history: {}", err).red());
     }
