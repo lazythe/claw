@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 users = "0.11"
 colored = "2.1.0"
+rustyline = "12.0.0"

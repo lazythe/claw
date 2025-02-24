@@ -2,27 +2,41 @@ mod builtins;
 mod command;
 mod inout;
 
-use std::io::{self, Write};
 use users::get_current_username;
 use colored::*;
+use rustyline::error::ReadlineError;
+use rustyline::{Editor, DefaultEditor};
 
 fn main() {
+    // Create a new rustyline editor with default configuration
+    let mut rl = DefaultEditor::new().unwrap();
+    
+    // Load history from previous sessions if it exists
+    if rl.load_history("history.txt").is_err() {
+        println!("{}", "No previous history.".yellow());
+    }
+
     loop {
         let username = get_current_username().unwrap();
-        print!("[{}] {}> ", username.to_string_lossy().bright_green(), "~".bright_blue());
-        io::stdout().flush().unwrap();
-
-        let mut input = String::new();
-        match io::stdin().read_line(&mut input) {
-            Ok(_) => {
-                let input = input.trim();
+        let prompt = format!("[{}] {}> ", username.to_string_lossy().bright_green(), "~".bright_blue());
+        
+        // Get input with line editing
+        match rl.readline(&prompt) {
+            Ok(line) => {
+                // Add valid lines to history
+                rl.add_history_entry(line.as_str());
+                
+                let input = line.trim();
+                if input.is_empty() {
+                    continue;
+                }
 
                 if input.contains(">") || input.contains("<") {
                     handle_redirection(input);
                 } else if input.contains("|") {
                     handle_pipe(input);
                 } else {
-                    let tokens: Vec<&str> = input.trim().split_whitespace().collect();
+                    let tokens: Vec<&str> = input.split_whitespace().collect();
                     if tokens.is_empty() {
                         continue;
                     }
@@ -37,10 +51,24 @@ fn main() {
                     }
                 }
             }
-            Err(error) => {
-                eprintln!("{}", format!("Error reading input: {}", error).red());
+            Err(ReadlineError::Interrupted) => {
+                println!("{}", "^C".red());
+                continue;
+            }
+            Err(ReadlineError::Eof) => {
+                println!("{}", "exit".bright_yellow());
+                break;
+            }
+            Err(err) => {
+                eprintln!("{}", format!("Error: {}", err).red());
+                break;
             }
         }
+    }
+
+    // Save history on exit
+    if let Err(err) = rl.save_history("history.txt") {
+        eprintln!("{}", format!("Error saving history: {}", err).red());
     }
 }
 
