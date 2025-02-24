@@ -1,7 +1,8 @@
 #[allow(unused_imports)]
-use std::env;
+mod builtins;
+mod command;
+
 use std::io::{self, Write};
-use std::process::Command;
 use users::get_current_username;
 
 fn main() {
@@ -25,13 +26,10 @@ fn main() {
         let command = tokens[0];
         let args = &tokens[1..];
 
-        let status = Command::new(command)
-            .args(args)
-            .status()
-            .expect("failed to execute process");
-
-        if !status.success() {
-            println!("command failed with status: {}", status);
+        if builtins::is_builtin(command) {
+            builtins::execute_builtin(command, args);
+        } else {
+            command::execute_command(command, args);
         }
     }
 }
