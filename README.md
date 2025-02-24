@@ -13,14 +13,14 @@
 ### Basic Functionality
 
 * Directory traversal using ```cd /path```
-* Clear terminal text using ```clear```
-* Exit the shell using ```exit```
+* Clear terminal using ```clear```
+* Exit shell using ```exit```
 * List commands using ```help```
 
 ### Directory Stack Operations
 
-* Show the current stack ```dirs```
-* Save current dir and go path ```pushd /path```
+* Show current stack ```dirs```
+* Save current dir and go to path ```pushd /path```
 * Pop last directory from stack ```popd```
 
 more coming soon...
