@@ -5,7 +5,7 @@ mod inout;
 use users::get_current_username;
 use colored::*;
 use rustyline::error::ReadlineError;
-use rustyline::{Editor, DefaultEditor};
+use rustyline::DefaultEditor;
 use std::env;
 
 fn main() {

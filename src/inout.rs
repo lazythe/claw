@@ -2,6 +2,7 @@ use std::{
     fs::File,
     process::{Command, Stdio},
 };
+use colored::*;
 
 pub fn handle_output_redirection(command: &str, args: &[&str], output_file: Option<&str>) {
     let mut cmd = Command::new(command);
@@ -25,30 +26,30 @@ pub fn handle_input_redirection(command: &str, args: &[&str], input_file: Option
     if let Some(file) = input_file {
         match File::open(file) {
             Ok(f) => {
-                println!(
-                    "Input file '{}' successfully opened for stdin redirection",
-                    file
-                );
                 cmd.stdin(Stdio::from(f));
             }
             Err(e) => {
-                eprintln!("{}:{}", file, e);
+                eprintln!("{}", format!("Error opening file '{}': {}", file, e).red());
                 return;
             }
         }
     }
 
-    let output = cmd.output().expect("Failed to execute command");
-
-    println!("Command exited with status: {}", output.status);
-    if !output.stdout.is_empty() {
-        let output_str = String::from_utf8_lossy(&output.stdout);
-        println!("Command output: {}", output_str);
-    }
-
-    if !output.stderr.is_empty() {
-        let error_str = String::from_utf8_lossy(&output.stderr);
-        eprintln!("Error output: {}", error_str);
+    match cmd.output() {
+        Ok(output) => {
+            if !output.stdout.is_empty() {
+                print!("{}", String::from_utf8_lossy(&output.stdout));
+            }
+            if !output.stderr.is_empty() {
+                eprint!("{}", String::from_utf8_lossy(&output.stderr));
+            }
+            if !output.status.success() {
+                eprintln!("{}", format!("Command failed with status: {}", output.status).red());
+            }
+        }
+        Err(e) => {
+            eprintln!("{}", format!("Failed to execute command: {}", e).red());
+        }
     }
 }
 
