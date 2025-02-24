@@ -1,12 +1,17 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
+use users::get_current_username;
 
 fn main() {
-    print!("$ ");
-    io::stdout().flush().unwrap();
+    loop {
+        print!("[{:?}] ~> ", get_current_username().unwrap());
+        io::stdout().flush().unwrap();
 
-    let stdin = io::stdin();
-    let mut input = String::new();
-    stdin.read_line(&mut input).unwrap();
-    println!("{}: command not found", input.trim());
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+
+        if input.trim() == "exit" {
+            break;
+        }
+    }
 }
