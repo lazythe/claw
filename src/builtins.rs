@@ -64,8 +64,8 @@ pub fn execute_builtin(command: &str, args: &[&str]) {
             }
 
             let current_dir = env::current_dir().unwrap();
-            if let Err(e) = env::set_current_dir(new_dir) {
-                eprintln!("{}", format!("pushd: {}", e).red());
+            if env::set_current_dir(new_dir).is_err() {
+                eprintln!("{}", format!("pushd: failed to change directory: {}", args[0]).red());
                 return;
             }
 
@@ -74,16 +74,16 @@ pub fn execute_builtin(command: &str, args: &[&str]) {
         }
         "popd" => {
             let mut stack = get_dir_stack();
-            if let Some(dir) = stack.pop_front() {
-                if let Err(e) = env::set_current_dir(&dir) {
-                    eprintln!("{}", format!("popd: {}", e).red());
-
-                    stack.push_front(dir);
-                    return;
+            match stack.pop_front() {
+                Some(dir) => {
+                    if env::set_current_dir(&dir).is_err() {
+                        eprintln!("{}", format!("popd: failed to change to directory: {}", dir.display()).red());
+                        stack.push_front(dir);
+                        return;
+                    }
+                    print_dirs();
                 }
-                print_dirs();
-            } else {
-                eprintln!("{}", "popd: directory stack empty".red());
+                None => eprintln!("{}", "popd: directory stack empty".red()),
             }
         }
         "dirs" => {

@@ -35,32 +35,22 @@ impl rustyline::completion::Completer for ShellHelper {
         
         if candidates.len() > 1 {
             let term_width = term_size::dimensions().map(|(w, _)| w).unwrap_or(80);
-            
-            let max_width = candidates.iter()
-                .map(|c| c.display.len())
-                .max()
-                .unwrap_or(0) + 2;
-            
+            let max_width = candidates.iter().map(|c| c.display.len()).max().unwrap_or(0) + 2;
             let cols = term_width / max_width;
+
             if cols > 0 {
                 print!("\x1B[s\n");
                 io::stdout().flush().ok();
                 
-                let mut current_col = 0;
-                for candidate in &candidates {
+                candidates.iter().enumerate().for_each(|(i, candidate)| {
                     print!("{:<width$}", candidate.display, width = max_width);
-                    current_col += 1;
-                    
-                    if current_col >= cols {
-                        println!();
-                        current_col = 0;
-                    }
-                }
-                
-                if current_col > 0 {
+                    if (i + 1) % cols == 0 { println!(); }
+                });
+
+                if !candidates.is_empty() {
                     println!();
                 }
-                
+
                 print!("\x1B[u");
                 io::stdout().flush().ok();
             }
@@ -133,17 +123,17 @@ fn main() {
     }
 
     loop {
-        let username = get_current_username().unwrap();
-        let prompt = format!("[{}] {} {}> ", username.to_string_lossy().bright_green(), env::current_dir().unwrap().display().to_string().bright_blue(), "~".bright_blue());
+        let prompt = format!(
+            "[{}] {} {}> ",
+            get_current_username().unwrap().to_string_lossy().bright_green(),
+            env::current_dir().unwrap().display().to_string().bright_blue(),
+            "~".bright_blue()
+        );
         
         match rl.readline(&prompt) {
-            Ok(line) => {
-                let _ = rl.add_history_entry(line.as_str());
-                
+            Ok(line) if !line.trim().is_empty() => {
+                rl.add_history_entry(line.as_str()).ok();
                 let input = line.trim();
-                if input.is_empty() {
-                    continue;
-                }
 
                 if input.contains(">") || input.contains("<") {
                     handle_redirection(input);
@@ -151,10 +141,6 @@ fn main() {
                     handle_pipe(input);
                 } else {
                     let tokens: Vec<&str> = input.split_whitespace().collect();
-                    if tokens.is_empty() {
-                        continue;
-                    }
-
                     let command = tokens[0];
                     let args = &tokens[1..];
 
@@ -167,7 +153,6 @@ fn main() {
             }
             Err(ReadlineError::Interrupted) => {
                 println!("{}", "^C".red());
-                continue;
             }
             Err(ReadlineError::Eof) => {
                 println!("{}", "exit".bright_yellow());
@@ -177,6 +162,7 @@ fn main() {
                 eprintln!("{}", format!("Error: {}", err).red());
                 break;
             }
+            Ok(_) => {}
         }
     }
 
