@@ -10,7 +10,17 @@
 
 # Currently Implemented
 
-### Basic Functionality
+### Basic Functionality 
+
+* Tab completion for commands and files
+* History
+* Colorization
+* Command redirection
+* Pipe
+* Background processes
+* Directory stack operations
+
+### Basic Commands
 
 * Directory traversal using ```cd /path```
 * Clear terminal using ```clear```
@@ -23,4 +33,8 @@
 * Save current dir and go to path ```pushd /path```
 * Pop last directory from stack ```popd```
 
-more coming soon...
+### Coming Soon
+
+* History search using ```history | grep <pattern>```
+* Search for files using ```find /path -name <pattern>```
+* Search for directories using ```find /path -type d```

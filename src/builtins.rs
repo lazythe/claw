@@ -6,7 +6,6 @@ use std::path::{Path, PathBuf};
 use std::collections::VecDeque;
 use lazy_static::lazy_static;
 
-// Global directory stack
 lazy_static! {
     static ref DIR_STACK: std::sync::Mutex<VecDeque<PathBuf>> = std::sync::Mutex::new(VecDeque::new());
 }
@@ -78,7 +77,7 @@ pub fn execute_builtin(command: &str, args: &[&str]) {
             if let Some(dir) = stack.pop_front() {
                 if let Err(e) = env::set_current_dir(&dir) {
                     eprintln!("{}", format!("popd: {}", e).red());
-                    // Put the directory back since we couldn't cd to it
+
                     stack.push_front(dir);
                     return;
                 }
